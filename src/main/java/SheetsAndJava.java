@@ -86,7 +86,9 @@ public class SheetsAndJava {
     // *Find out a way to check if it is not empty. If it is empty, then you add it.
     ValueRange appendBody = new ValueRange()
             .setValues(Arrays.asList(
-                    Arrays.asList("Jomar", "is ", "funny")
+                    Arrays.asList(new FetchData().getPrice(
+                            "https://www.ebay.com/itm/115465469421?_trkparms=amclksrc%3DITM%26aid%3D1110006%26algo%3DHOMESPLICE.SIM%26ao%3D1%26asc%3D20200818143230%26meid%3D894b1840e2194bcc8547048035c74066%26pid%3D101224%26rk%3D5%26rkt%3D5%26sd%3D385009427122%26itm%3D115465469421%26pmt%3D1%26noa%3D1%26pg%3D2047675%26algv%3DDefaultOrganicWeb%26brand%3DWizards+of+the+Coast&_trksid=p2047675.c101224.m-1"
+                    ), "is ", "funny")
             ));
 
     AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
