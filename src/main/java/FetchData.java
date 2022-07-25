@@ -1,13 +1,11 @@
-import org.jsoup.*;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
+
+
 
 public class FetchData {
   public static String getPrice(String url) throws IOException {
@@ -21,18 +19,23 @@ public class FetchData {
   }
 
   public static String search(String search) throws IOException {
-    Document doc = Jsoup.connect("https://www.ebay.com")
-            .data("_nkw", search)
-//            .data("sort", "asc")
-//            .data("category", "All Categories")
-           .post();
+    String url = getURL(search);
 
-    Elements temp = doc.select("div.val");
+    Document doc = Jsoup.connect(url)
+            .userAgent("Mozilla/17.0").get();
+    Elements temp = doc.select("div.srp-river-results");
     Element webData = temp.get(0);
-    return webData.getElementsByTag("span").first().text();
+
+    return webData.getElementsByClass("s-item__price").first().text();
+  }
+
+  public static String getURL(String search) throws IOException {
+    String url = "https://www.ebay.com/sch/i.html?_nkw=" + search
+            + "&LH_Sold=1&LH_Complete=1";
+    return url;
   }
 
   public static void main(String[] args) throws IOException {
-    System.out.println("The price is " + search("HITMONCHAN 24/115"));
+    System.out.println("The price is " + search("spiderman"));
   }
 }

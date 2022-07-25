@@ -4,30 +4,47 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
+import com.google.api.client.googleapis.json.GoogleJsonError;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.AppendValuesResponse;
+import com.google.api.services.sheets.v4.model.BatchUpdateSpreadsheetRequest;
+import com.google.api.services.sheets.v4.model.CellData;
+import com.google.api.services.sheets.v4.model.CellFormat;
+import com.google.api.services.sheets.v4.model.ExtendedValue;
+import com.google.api.services.sheets.v4.model.GridRange;
+import com.google.api.services.sheets.v4.model.RepeatCellRequest;
+import com.google.api.services.sheets.v4.model.Request;
+import com.google.api.services.sheets.v4.model.TextFormat;
+import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
 
 public class SheetsAndJava {
   private static Sheets sheetsService;
   private static String APPLICATION_NAME = "Google Sheets Example";
   private static String SPREADSHEET_ID = "15OaVdDtVqKA4e9qGpLgbBUO-TXbemXwEJ2t3V8Viy5w";
 
+  private static final FetchData fetchData = new FetchData();
+  public SheetsAndJava(String searches) throws GeneralSecurityException, IOException {
+    sheetsService = getSheetsService();
+    String[] searchesArray = searches.split("\n");
+
+    for (String s : searchesArray) {
+      writeData(s);
+    }
+  }
   private static Credential authorize() throws IOException, GeneralSecurityException {
     InputStream in = SheetsAndJava.class.getResourceAsStream("/credentials.json");
     GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
@@ -60,9 +77,156 @@ public class SheetsAndJava {
             .build();
   }
 
-  public static void readData() throws IOException {
-    String range = "A2:E8";
+  public static void writeData(String data) throws IOException {
+    String range = "B3";
 
+    int quantity = 1;
+    int duplicateCellNum = -1;
+
+    if (duplicate(data)) {
+      quantity = quantity(data);
+      duplicateCellNum = getDuplicateCellNum(data);
+      setQuantity(quantity, duplicateCellNum);
+    }
+
+    ValueRange appendName = new ValueRange().setValues(
+            Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
+
+    AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
+            .append(SPREADSHEET_ID, range, appendName)
+            .setValueInputOption("USER_ENTERED")
+            .setInsertDataOption("INSERT_ROWS")
+            .setIncludeValuesInResponse(true)
+            .execute();
+
+    CellData setUserEnteredValue = new CellData()
+            .setUserEnteredValue(new ExtendedValue().setStringValue("example text"));
+
+    CellFormat cellFormat = new CellFormat();
+    cellFormat.setTextFormat(new TextFormat().setBold(true));
+
+    setUserEnteredValue.setUserEnteredFormat(cellFormat);
+
+    notBold();
+  }
+
+  public static void setQuantity(int quantity, int duplicateCellNum) throws IOException {
+    ValueRange appendName = new ValueRange().setValues(
+            Arrays.asList(Arrays.asList(quantity)));
+
+    String range = "A" + 3 + ":" + "A" + 3;
+
+//    AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
+//            .append(SPREADSHEET_ID, range , appendName)
+//            .setValueInputOption("USER_ENTERED")
+//            .setInsertDataOption("INSERT_ROWS")
+//            .setIncludeValuesInResponse(true)
+//            .execute();
+  }
+
+  /**
+   *
+   * @param cell
+   * @return the first instance of the cell with the given data (String)
+   */
+  public static int getDuplicateCellNum(String cell) throws IOException {
+    String range = "B3:B1000";
+    int currentCell = 3;
+
+    ValueRange response = sheetsService.spreadsheets().values()
+            .get(SPREADSHEET_ID, range)
+            .execute();
+
+    List<List<Object>> values = response.getValues();
+
+    for(int i = 0; i < values.size(); i++) {
+      if (!values.get(i).get(0).equals(cell)) {
+        currentCell++;
+      }
+      if (values.get(i).get(0).equals(cell)) {
+        return currentCell;
+      }
+    }
+
+    return -1;
+  }
+
+  public static void notBold() throws IOException {
+    RepeatCellRequest repeatCellRequest = new RepeatCellRequest();
+    CellData cellData = new CellData();
+
+    CellFormat cellFormat = new CellFormat();
+    TextFormat textFormat = new TextFormat();
+    textFormat.setBold(false);
+
+    cellFormat.setTextFormat(textFormat);
+    cellData.setUserEnteredFormat(cellFormat);
+    repeatCellRequest.setCell(cellData);
+    repeatCellRequest.setFields("userEnteredFormat(textFormat)");
+
+    GridRange gridRange = new GridRange();
+    gridRange
+            .setSheetId(0) // the sheet this range is on
+            .setStartRowIndex(2);
+    repeatCellRequest.setRange(gridRange);
+
+    List<Request> requests = new ArrayList<>();
+    requests.add(new Request().setRepeatCell(repeatCellRequest));
+
+    BatchUpdateSpreadsheetRequest body2 = new BatchUpdateSpreadsheetRequest()
+            .setRequests(requests);
+
+    sheetsService.spreadsheets()
+            .batchUpdate(SPREADSHEET_ID, body2)
+            .execute();
+  }
+
+  /**
+   *
+   * @param data
+   * @return false if there is no duplicate, true otherwise
+   * @throws IOException
+   */
+  public static boolean duplicate(String data) throws IOException {
+    String range = "B3:B1000";
+
+    ValueRange response = sheetsService.spreadsheets().values()
+            .get(SPREADSHEET_ID, range)
+            .execute();
+
+    List<List<Object>> values = response.getValues();
+
+    for(int i = 0; i < values.size(); i++) {
+      if (values.get(i).get(0).equals(data)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  public static int quantity(String data) throws IOException {
+    String range = "B3:B1000";
+    int quantity = 1;
+
+    ValueRange response = sheetsService.spreadsheets().values()
+            .get(SPREADSHEET_ID, range)
+            .execute();
+
+    List<List<Object>> values = response.getValues();
+
+    for(int i = 0; i < values.size(); i++) {
+      if (values.get(i).get(0).equals(data)) {
+        quantity ++;
+      }
+    }
+
+    return quantity;
+  }
+
+  public static String readData(String cell) throws IOException {
+    String range = cell + ":" + cell;
+    String data = "";
     ValueRange response = sheetsService.spreadsheets().values()
             .get(SPREADSHEET_ID, range)
             .execute();
@@ -74,33 +238,16 @@ public class SheetsAndJava {
     }
     else {
       for (List row : values) {
-        System.out.println(row.get(0));
+        data += row.get(0);
+//        System.out.println(row.get(0));
       }
     }
+
+    return data;
   }
 
-  public static void writeData() throws IOException {
-    String range = "A10:C10";
-    // If you keep the same range and there is already something in those
-    // cells than it just adds it to the next empty cells.
-    // *Find out a way to check if it is not empty. If it is empty, then you add it.
-    ValueRange appendBody = new ValueRange()
-            .setValues(Arrays.asList(
-                    Arrays.asList(new FetchData().getPrice(
-                            "https://www.ebay.com/itm/115465469421?_trkparms=amclksrc%3DITM%26aid%3D1110006%26algo%3DHOMESPLICE.SIM%26ao%3D1%26asc%3D20200818143230%26meid%3D894b1840e2194bcc8547048035c74066%26pid%3D101224%26rk%3D5%26rkt%3D5%26sd%3D385009427122%26itm%3D115465469421%26pmt%3D1%26noa%3D1%26pg%3D2047675%26algv%3DDefaultOrganicWeb%26brand%3DWizards+of+the+Coast&_trksid=p2047675.c101224.m-1"
-                    ), "is ", "funny")
-            ));
-
-    AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
-            .append(SPREADSHEET_ID, range, appendBody)
-            .setValueInputOption("USER_ENTERED")
-            .setInsertDataOption("INSERT_ROWS")
-            .setIncludeValuesInResponse(true)
-            .execute();
-  }
-
-  public static void main(String[] args) throws IOException, GeneralSecurityException {
-    sheetsService = getSheetsService();
-    writeData();
-  }
+//  public static void main(String[] args) throws IOException, GeneralSecurityException {
+//    sheetsService = getSheetsService();
+//    writeData("spiderman");
+//  }
 }
