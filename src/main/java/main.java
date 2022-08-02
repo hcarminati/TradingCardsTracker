@@ -10,7 +10,7 @@ public class main {
 
     SheetsAndJava sheetsAndJava = new SheetsAndJava("Erika's Tangela 79/132\n" +
             "Zubat 57/62\n" +
-            "Shaymin EX RC21/RC25");
+            "Shaymin EX RC21/RC25\n");
     TextBasedView view = new TextBasedView(appendable);
     TextBasedController controller = new TextBasedController(sheetsAndJava, view, readable);
     controller.start();

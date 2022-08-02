@@ -3,9 +3,12 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
@@ -19,6 +22,7 @@ import com.google.api.services.sheets.v4.model.GridRange;
 import com.google.api.services.sheets.v4.model.RepeatCellRequest;
 import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.TextFormat;
+import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
@@ -28,13 +32,14 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
 public class SheetsAndJava {
   private static Sheets sheetsService;
   private static String APPLICATION_NAME = "Google Sheets Example";
-  private static String SPREADSHEET_ID = "15OaVdDtVqKA4e9qGpLgbBUO-TXbemXwEJ2t3V8Viy5w";
+  private static String SPREADSHEET_ID = "1A89G4dwVIF6NKNHTMrV_c8olROOrXgzZuEqpJjLujRs";
 
   private static final FetchData fetchData = new FetchData();
   public SheetsAndJava(String searches) throws GeneralSecurityException, IOException {
@@ -77,7 +82,7 @@ public class SheetsAndJava {
             .build();
   }
 
-  public static void writeData(String data) throws IOException {
+  public static void writeData(String data) throws IOException, GeneralSecurityException {
     String range = "B3";
 
     int quantity = 1;
@@ -89,39 +94,64 @@ public class SheetsAndJava {
       setQuantity(quantity, duplicateCellNum);
     }
 
-    ValueRange appendName = new ValueRange().setValues(
-            Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
+    // If not duplicate, add it.
+    else {
+      ValueRange appendName = new ValueRange().setValues(
+              Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
 
-    AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
-            .append(SPREADSHEET_ID, range, appendName)
-            .setValueInputOption("USER_ENTERED")
-            .setInsertDataOption("INSERT_ROWS")
-            .setIncludeValuesInResponse(true)
-            .execute();
+      AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
+              .append(SPREADSHEET_ID, range, appendName)
+              .setValueInputOption("USER_ENTERED")
+              .setInsertDataOption("INSERT_ROWS")
+              .setIncludeValuesInResponse(true)
+              .execute();
 
-    CellData setUserEnteredValue = new CellData()
-            .setUserEnteredValue(new ExtendedValue().setStringValue("example text"));
+      CellData setUserEnteredValue = new CellData()
+              .setUserEnteredValue(new ExtendedValue().setStringValue("example text"));
 
-    CellFormat cellFormat = new CellFormat();
-    cellFormat.setTextFormat(new TextFormat().setBold(true));
+      CellFormat cellFormat = new CellFormat();
+      // Don't think I need this
+      // cellFormat.setTextFormat(new TextFormat().setBold(true));
 
-    setUserEnteredValue.setUserEnteredFormat(cellFormat);
+      setUserEnteredValue.setUserEnteredFormat(cellFormat);
 
-    notBold();
+      notBold();
+    }
+
   }
 
-  public static void setQuantity(int quantity, int duplicateCellNum) throws IOException {
-    ValueRange appendName = new ValueRange().setValues(
-            Arrays.asList(Arrays.asList(quantity)));
+  public static void setQuantity(int quantity, int duplicateCellNum) throws IOException, GeneralSecurityException {
+    String range = "Sheet1!B" + duplicateCellNum;
+    String data = "";
+    ValueRange response = sheetsService.spreadsheets().values()
+            .get(SPREADSHEET_ID, range)
+            .execute();
 
-    String range = "A" + 3 + ":" + "A" + 3;
+    List<List<Object>> values = response.getValues();
+    String currentQuantityString = values.get(0).get(0).toString();
+    int currentQuantity = Integer.valueOf(currentQuantityString);
 
-//    AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
-//            .append(SPREADSHEET_ID, range , appendName)
-//            .setValueInputOption("USER_ENTERED")
+    if (values == null || values.isEmpty()) {
+      System.out.println("No data found.");
+    } else {
+      for (List row : values) {
+        data += row.get(0);
+//        System.out.println(row.get(0));
+
+        ValueRange requestBody = new ValueRange();
+        requestBody.setValues(
+                Arrays.asList(
+                        Arrays.asList(quantity + currentQuantity - 1)));
+
+
+        UpdateValuesResponse updateResults = sheetsService.spreadsheets().values()
+                .update(SPREADSHEET_ID, range, requestBody)
+                .setValueInputOption("USER_ENTERED")
 //            .setInsertDataOption("INSERT_ROWS")
-//            .setIncludeValuesInResponse(true)
-//            .execute();
+                .setIncludeValuesInResponse(true)
+                .execute();
+      }
+    }
   }
 
   /**
@@ -130,7 +160,7 @@ public class SheetsAndJava {
    * @return the first instance of the cell with the given data (String)
    */
   public static int getDuplicateCellNum(String cell) throws IOException {
-    String range = "B3:B1000";
+    String range = "C3:C1000";
     int currentCell = 3;
 
     ValueRange response = sheetsService.spreadsheets().values()
@@ -166,7 +196,7 @@ public class SheetsAndJava {
 
     GridRange gridRange = new GridRange();
     gridRange
-            .setSheetId(0) // the sheet this range is on
+            .setSheetId(0) // Number this sheet is
             .setStartRowIndex(2);
     repeatCellRequest.setRange(gridRange);
 
@@ -188,7 +218,7 @@ public class SheetsAndJava {
    * @throws IOException
    */
   public static boolean duplicate(String data) throws IOException {
-    String range = "B3:B1000";
+    String range = "C3:C1000";
 
     ValueRange response = sheetsService.spreadsheets().values()
             .get(SPREADSHEET_ID, range)
@@ -196,9 +226,11 @@ public class SheetsAndJava {
 
     List<List<Object>> values = response.getValues();
 
-    for(int i = 0; i < values.size(); i++) {
-      if (values.get(i).get(0).equals(data)) {
-        return true;
+    if (values != null) {
+      for (int i = 0; i < values.size(); i++) {
+        if (values.get(i).get(0).equals(data)) {
+          return true;
+        }
       }
     }
 
@@ -206,7 +238,7 @@ public class SheetsAndJava {
   }
 
   public static int quantity(String data) throws IOException {
-    String range = "B3:B1000";
+    String range = "C3:C1000";
     int quantity = 1;
 
     ValueRange response = sheetsService.spreadsheets().values()
@@ -216,12 +248,16 @@ public class SheetsAndJava {
     List<List<Object>> values = response.getValues();
 
     for(int i = 0; i < values.size(); i++) {
+//      System.out.println("VALUES.GET(I).GET(0): " + values.get(0));
+//      System.out.println("DATA: " + data);
+
+      // if cell is emoty an error is thrown here
       if (values.get(i).get(0).equals(data)) {
         quantity ++;
       }
     }
 
-    return quantity;
+    return quantity ;
   }
 
   public static String readData(String cell) throws IOException {
