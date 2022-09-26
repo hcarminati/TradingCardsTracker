@@ -35,7 +35,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ *
+ */
 public class SheetsAndJava {
   private static Sheets sheetsService;
   private static String APPLICATION_NAME = "Google Sheets Example";
@@ -120,6 +122,15 @@ public class SheetsAndJava {
 
   }
 
+  //(?)
+  /**
+   * Sets the quantity of the cell that keeps track of the quantity of a certain card.
+   *
+   * @param quantity the current quantity before adding one
+   * @param duplicateCellNum the
+   * @throws IOException
+   * @throws GeneralSecurityException
+   */
   public static void setQuantity(int quantity, int duplicateCellNum) throws IOException, GeneralSecurityException {
     String range = "Sheet1!B" + duplicateCellNum;
     String data = "";
@@ -136,7 +147,6 @@ public class SheetsAndJava {
     } else {
       for (List row : values) {
         data += row.get(0);
-//        System.out.println(row.get(0));
 
         ValueRange requestBody = new ValueRange();
         requestBody.setValues(
@@ -155,8 +165,10 @@ public class SheetsAndJava {
   }
 
   /**
+   * Goes through the cells with the trading card names and checks if there exists a cells with
+   * the given name.
    *
-   * @param cell
+   * @param cell the string to be looked for
    * @return the first instance of the cell with the given data (String)
    */
   public static int getDuplicateCellNum(String cell) throws IOException {
@@ -181,6 +193,11 @@ public class SheetsAndJava {
     return -1;
   }
 
+  /**
+   * Sets the cells to not be bold when new information is added or when a cell is updated.
+   *
+   * @throws IOException
+   */
   public static void notBold() throws IOException {
     RepeatCellRequest repeatCellRequest = new RepeatCellRequest();
     CellData cellData = new CellData();
@@ -212,13 +229,15 @@ public class SheetsAndJava {
   }
 
   /**
+   * Goes through the cells with the names of the trading cards and checks if the inputted data
+   * has already been added to the Google Sheet.
    *
-   * @param data
+   * @param data the data being looked for
    * @return false if there is no duplicate, true otherwise
    * @throws IOException
    */
   public static boolean duplicate(String data) throws IOException {
-    String range = "C3:C1000";
+    String range = "C3:C5";
 
     ValueRange response = sheetsService.spreadsheets().values()
             .get(SPREADSHEET_ID, range)
@@ -237,8 +256,14 @@ public class SheetsAndJava {
     return false;
   }
 
+  /**
+   *
+   * @param data
+   * @return the number of times the given data appears in the cell range
+   * @throws IOException
+   */
   public static int quantity(String data) throws IOException {
-    String range = "C3:C1000";
+    String range = "C3:C5";
     int quantity = 1;
 
     ValueRange response = sheetsService.spreadsheets().values()
@@ -248,10 +273,8 @@ public class SheetsAndJava {
     List<List<Object>> values = response.getValues();
 
     for(int i = 0; i < values.size(); i++) {
-//      System.out.println("VALUES.GET(I).GET(0): " + values.get(0));
-//      System.out.println("DATA: " + data);
 
-      // if cell is emoty an error is thrown here
+      // if cell is empty an error is thrown here
       if (values.get(i).get(0).equals(data)) {
         quantity ++;
       }
@@ -275,15 +298,10 @@ public class SheetsAndJava {
     else {
       for (List row : values) {
         data += row.get(0);
-//        System.out.println(row.get(0));
       }
     }
 
     return data;
   }
 
-//  public static void main(String[] args) throws IOException, GeneralSecurityException {
-//    sheetsService = getSheetsService();
-//    writeData("spiderman");
-//  }
 }

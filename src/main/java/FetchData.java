@@ -6,7 +6,6 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 
 
-
 public class FetchData {
   public static String getPrice(String url) throws IOException {
     Document doc = Jsoup.connect(url)
