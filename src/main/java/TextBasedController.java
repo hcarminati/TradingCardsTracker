@@ -10,6 +10,6 @@ public class TextBasedController {
   }
 
   public void start() {
-
+    SheetsAndJava.updateSpreadsheetID("");
   }
 }

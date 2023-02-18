@@ -41,9 +41,24 @@ import java.util.List;
 public class SheetsAndJava {
   private static Sheets sheetsService;
   private static String APPLICATION_NAME = "Google Sheets Example";
-  private static String SPREADSHEET_ID = "1A89G4dwVIF6NKNHTMrV_c8olROOrXgzZuEqpJjLujRs";
+//  private static String SPREADSHEET_ID = "14vpCmaMtFc4bWGMa5WmT_-JMTiy1-nPg1esIlW3noBU";
+
+  private static String SPREADSHEET_ID;
 
   private static final FetchData fetchData = new FetchData();
+
+  public SheetsAndJava() throws GeneralSecurityException, IOException {
+    sheetsService = getSheetsService();
+    SPREADSHEET_ID = "";
+  }
+
+  /**
+   * MAY NOT NEED LATER, SO CAN DELETE
+   * This constructor is used to run the program by initially putting in cards to search.
+   * @param searches
+   * @throws GeneralSecurityException
+   * @throws IOException
+   */
   public SheetsAndJava(String searches) throws GeneralSecurityException, IOException {
     sheetsService = getSheetsService();
     String[] searchesArray = searches.split("\n");
@@ -84,12 +99,23 @@ public class SheetsAndJava {
             .build();
   }
 
+  /**
+   * Adds the data to the spreadsheet. It checks if the card has been previously added.
+   * If the card has been previously added, it will calculate the quantity and updates it.
+   * If the card has not been added, it will be added to the spreadsheet in the next empty row.
+   *
+   * @param data the name to look for or add
+   * @throws IOException
+   * @throws GeneralSecurityException
+   */
   public static void writeData(String data) throws IOException, GeneralSecurityException {
     String range = "B3";
 
     int quantity = 1;
     int duplicateCellNum = -1;
 
+    // perhaps make it one method that checks if it is duplicate and calculates the quantity
+    // this may reduce the running time
     if (duplicate(data)) {
       quantity = quantity(data);
       duplicateCellNum = getDuplicateCellNum(data);
@@ -101,6 +127,7 @@ public class SheetsAndJava {
       ValueRange appendName = new ValueRange().setValues(
               Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
 
+      // Is this used? - because it is grey
       AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
               .append(SPREADSHEET_ID, range, appendName)
               .setValueInputOption("USER_ENTERED")
@@ -112,6 +139,7 @@ public class SheetsAndJava {
               .setUserEnteredValue(new ExtendedValue().setStringValue("example text"));
 
       CellFormat cellFormat = new CellFormat();
+
       // Don't think I need this
       // cellFormat.setTextFormat(new TextFormat().setBold(true));
 
@@ -165,11 +193,11 @@ public class SheetsAndJava {
   }
 
   /**
-   * Goes through the cells with the trading card names and checks if there exists a cells with
-   * the given name.
+   * Goes through the cells with the trading card names and checks if there exists a cell with
+   * the given name and returning its cell number.
    *
    * @param cell the string to be looked for
-   * @return the first instance of the cell with the given data (String)
+   * @return the location of the first instance of the cell with the given data
    */
   public static int getDuplicateCellNum(String cell) throws IOException {
     String range = "C3:C1000";
@@ -232,7 +260,7 @@ public class SheetsAndJava {
    * Goes through the cells with the names of the trading cards and checks if the inputted data
    * has already been added to the Google Sheet.
    *
-   * @param data the data being looked for
+   * @param data the name being looked for
    * @return false if there is no duplicate, true otherwise
    * @throws IOException
    */
@@ -257,8 +285,11 @@ public class SheetsAndJava {
   }
 
   /**
+   * Checks if the inputted data has already been added. If it has, it returns the total, quantity
+   * of the inputted data. If it has not, it will simply return 1 because it is being added for
+   * the first time.
    *
-   * @param data
+   * @param data the name being looked for
    * @return the number of times the given data appears in the cell range
    * @throws IOException
    */
@@ -304,4 +335,7 @@ public class SheetsAndJava {
     return data;
   }
 
+  public static void updateSpreadsheetID(String id) {
+    SPREADSHEET_ID = id;
+  }
 }

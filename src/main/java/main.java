@@ -8,9 +8,7 @@ public class main {
     Readable readable = new InputStreamReader(System.in);
     Appendable appendable = System.out;
 
-    SheetsAndJava sheetsAndJava = new SheetsAndJava("Erika's Tangela 79/132\n" +
-            "Zubat 57/62\n" +
-            "Shaymin EX RC21/RC25\n");
+    SheetsAndJava sheetsAndJava = new SheetsAndJava();
     TextBasedView view = new TextBasedView(appendable);
     TextBasedController controller = new TextBasedController(sheetsAndJava, view, readable);
     controller.start();
