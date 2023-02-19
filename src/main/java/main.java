@@ -8,7 +8,7 @@ public class main {
     Readable readable = new InputStreamReader(System.in);
     Appendable appendable = System.out;
 
-    SheetsAndJava sheetsAndJava = new SheetsAndJava();
+    SheetsAndJava sheetsAndJava = new SheetsAndJava("Pickachu");
     TextBasedView view = new TextBasedView(appendable);
     TextBasedController controller = new TextBasedController(sheetsAndJava, view, readable);
     controller.start();
