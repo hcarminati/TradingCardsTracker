@@ -1,14 +1,11 @@
+package controller;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.googleapis.json.GoogleJsonError;
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
@@ -22,7 +19,6 @@ import com.google.api.services.sheets.v4.model.GridRange;
 import com.google.api.services.sheets.v4.model.RepeatCellRequest;
 import com.google.api.services.sheets.v4.model.Request;
 import com.google.api.services.sheets.v4.model.TextFormat;
-import com.google.api.services.sheets.v4.model.UpdateCellsRequest;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
@@ -32,35 +28,42 @@ import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
- *
+ * The controller.SheetsAndJava class provides the functionality of accessing and modifying Google Sheets
+ * using Google Sheets API. It includes methods for getting Sheets service instance, authorizing
+ * credentials, adding data to the spreadsheet and other helpful methods.
  */
 public class SheetsAndJava {
   private static Sheets sheetsService;
   private static String APPLICATION_NAME = "Google Sheets Example";
-//  private static String SPREADSHEET_ID = "14vpCmaMtFc4bWGMa5WmT_-JMTiy1-nPg1esIlW3noBU";
- // https://docs.google.com/spreadsheets/d/1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk/edit?usp=sharing
-  private static String SPREADSHEET_ID;
+  private static String spreadsheetId;
 
   private static final FetchData fetchData = new FetchData();
 
+  /**
+   * Constructor that initializes the Google Sheet ID and gets the instance of the Sheet.
+   *
+   * @throws GeneralSecurityException if authorization is not successful
+   * @throws IOException              if failed to read a file or data
+   */
   public SheetsAndJava() throws GeneralSecurityException, IOException {
     sheetsService = getSheetsService();
-    SPREADSHEET_ID = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
+    spreadsheetId = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
   }
 
+  //TODO: may not need later, so can delete once main method functionality is complete
+
   /**
-   * MAY NOT NEED LATER, SO CAN DELETE
-   * This constructor is used to run the program by initially putting in cards to search.
-   * @param searches
-   * @throws GeneralSecurityException
-   * @throws IOException
+   * ???
+   *
+   * @param searches ???
+   * @throws GeneralSecurityException ???
+   * @throws IOException              ???
    */
   public SheetsAndJava(String searches) throws GeneralSecurityException, IOException {
-    SPREADSHEET_ID = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
+    spreadsheetId = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
     sheetsService = getSheetsService();
     String[] searchesArray = searches.split("\n");
 
@@ -68,6 +71,14 @@ public class SheetsAndJava {
       writeData(s);
     }
   }
+
+  /**
+   * Creates an instance of authorized Credential object.
+   *
+   * @return authorized Credential object
+   * @throws IOException              if failed to read a file or data
+   * @throws GeneralSecurityException if authorization is not successful
+   */
   private static Credential authorize() throws IOException, GeneralSecurityException {
     InputStream in = SheetsAndJava.class.getResourceAsStream("/credentials.json");
     GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(
@@ -86,12 +97,17 @@ public class SheetsAndJava {
     Credential credential = new AuthorizationCodeInstalledApp(
             flow, new LocalServerReceiver())
             .authorize("user");
-//    flow, new LocalServerReceiver.Builder().setPort(8888).build())
-//            .authorize("user");
 
     return credential;
   }
 
+  /**
+   * Gets the Sheets service instance using authorized Credential object.
+   *
+   * @return Sheets service instance
+   * @throws IOException              if failed to read a file or data
+   * @throws GeneralSecurityException if authorization is not successful
+   */
   public static Sheets getSheetsService() throws IOException, GeneralSecurityException {
     Credential credential = authorize();
     return new Sheets.Builder(GoogleNetHttpTransport.newTrustedTransport(),
@@ -106,8 +122,8 @@ public class SheetsAndJava {
    * If the card has not been added, it will be added to the spreadsheet in the next empty row.
    *
    * @param data the name to look for or add
-   * @throws IOException
-   * @throws GeneralSecurityException
+   * @throws IOException              if failed to read a file or data
+   * @throws GeneralSecurityException if authorization is not successful
    */
   public static void writeData(String data) throws IOException, GeneralSecurityException {
     String range = "B3";
@@ -130,7 +146,7 @@ public class SheetsAndJava {
 
       // Is this used? - because it is grey
       AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
-              .append(SPREADSHEET_ID, range, appendName)
+              .append(spreadsheetId, range, appendName)
               .setValueInputOption("USER_ENTERED")
               .setInsertDataOption("INSERT_ROWS")
               .setIncludeValuesInResponse(true)
@@ -151,20 +167,20 @@ public class SheetsAndJava {
 
   }
 
-  //(?)
   /**
-   * Sets the quantity of the cell that keeps track of the quantity of a certain card.
+   * Sets the quantity for a given cell in the spreadsheet, given the quantity and the cell
+   * number of the card.
    *
-   * @param quantity the current quantity before adding one
-   * @param duplicateCellNum the
-   * @throws IOException
-   * @throws GeneralSecurityException
+   * @param quantity the new quantity to be set
+   * @param cellNum  the cell number to set the quantity for
+   * @throws IOException              if an error occurs while accessing the Google Sheets API
+   * @throws GeneralSecurityException if not authorized
    */
-  public static void setQuantity(int quantity, int duplicateCellNum) throws IOException, GeneralSecurityException {
-    String range = "Sheet1!B" + duplicateCellNum;
+  public static void setQuantity(int quantity, int cellNum) throws IOException, GeneralSecurityException {
+    String range = "Sheet1!B" + cellNum;
     String data = "";
     ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
+            .get(spreadsheetId, range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -184,7 +200,7 @@ public class SheetsAndJava {
 
 
         UpdateValuesResponse updateResults = sheetsService.spreadsheets().values()
-                .update(SPREADSHEET_ID, range, requestBody)
+                .update(spreadsheetId, range, requestBody)
                 .setValueInputOption("USER_ENTERED")
 //            .setInsertDataOption("INSERT_ROWS")
                 .setIncludeValuesInResponse(true)
@@ -194,23 +210,25 @@ public class SheetsAndJava {
   }
 
   /**
-   * Goes through the cells with the trading card names and checks if there exists a cell with
-   * the given name and returning its cell number.
+   * Returns the number of the first duplicate cell in the specified row, or -1 if there are no
+   * duplicates. A duplicate cell is one that had the same value as another cell in the same column.
+   * In this case, the cell with the same value in the "Name" column.
    *
-   * @param cell the string to be looked for
-   * @return the location of the first instance of the cell with the given data
+   * @param cell the value of the cell to check for duplicates
+   * @return the number of the first duplicate cell in the range, or -1 if there are no duplicates
+   * @throws IOException if there is an error retrieving the values from the specified range
    */
   public static int getDuplicateCellNum(String cell) throws IOException {
     String range = "C3:C1000";
     int currentCell = 3;
 
     ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
+            .get(spreadsheetId, range)
             .execute();
 
     List<List<Object>> values = response.getValues();
 
-    for(int i = 0; i < values.size(); i++) {
+    for (int i = 0; i < values.size(); i++) {
       if (!values.get(i).get(0).equals(cell)) {
         currentCell++;
       }
@@ -223,9 +241,11 @@ public class SheetsAndJava {
   }
 
   /**
-   * Sets the cells to not be bold when new information is added or when a cell is updated.
+   * Removes bold formatting from the test in a specified range in the sheet. The method sends a
+   * batch update request to the Google Sheets API to set the text format of the cells to not bold.
+   * This is usually ran when new information is added or when a cell is updated.
    *
-   * @throws IOException
+   * @throws IOException if an error occurs while communicating with the Google Sheets API
    */
   public static void notBold() throws IOException {
     RepeatCellRequest repeatCellRequest = new RepeatCellRequest();
@@ -253,23 +273,22 @@ public class SheetsAndJava {
             .setRequests(requests);
 
     sheetsService.spreadsheets()
-            .batchUpdate(SPREADSHEET_ID, body2)
+            .batchUpdate(spreadsheetId, body2)
             .execute();
   }
 
   /**
-   * Goes through the cells with the names of the trading cards and checks if the inputted data
-   * has already been added to the Google Sheet.
+   * Checks if the specified data (trading card) already exists in the sheet.
    *
-   * @param data the name being looked for
-   * @return false if there is no duplicate, true otherwise
-   * @throws IOException
+   * @param data the name to be checked for duplicates
+   * @return true if the specified data already exists in the sheet, false otherwise
+   * @throws IOException if an error occurs while accessing the Google Sheets API
    */
   public static boolean duplicate(String data) throws IOException {
     String range = "C3:C5";
 
     ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
+            .get(spreadsheetId, range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -286,48 +305,56 @@ public class SheetsAndJava {
   }
 
   /**
-   * Checks if the inputted data has already been added. If it has, it returns the total, quantity
-   * of the inputted data. If it has not, it will simply return 1 because it is being added for
-   * the first time.
+   * Returns the number of times the specified data appears in the range "C3:C5" of the spreadsheet.
+   * If the data does not appear at least once, it will return 1 because the specified card has not
+   * been added yet to the sheet.
    *
-   * @param data the name being looked for
-   * @return the number of times the given data appears in the cell range
-   * @throws IOException
+   * @param data the card to be searched for in the spreadsheet
+   * @return the number of times the given data appears in the cell range, or 1 if the data searched
+   * for does not appear
+   * @throws IOException if an error occurs while accessing the spreadsheet
    */
   public static int quantity(String data) throws IOException {
     String range = "C3:C5";
     int quantity = 1;
 
     ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
+            .get(spreadsheetId, range)
             .execute();
 
     List<List<Object>> values = response.getValues();
 
-    for(int i = 0; i < values.size(); i++) {
+    for (int i = 0; i < values.size(); i++) {
 
       // if cell is empty an error is thrown here
       if (values.get(i).get(0).equals(data)) {
-        quantity ++;
+        quantity++;
       }
     }
 
-    return quantity ;
+    return quantity;
   }
 
+  /**
+   * Returns the data in the specified cell.
+   *
+   * @param cell the cell to read data from, in A1 notation
+   * @return the data in the specified cell as a string, or an empty string if the cell is empty or
+   * does not exist
+   * @throws IOException if an error occurs while communicating with the Google Sheets API
+   */
   public static String readData(String cell) throws IOException {
     String range = cell + ":" + cell;
     String data = "";
     ValueRange response = sheetsService.spreadsheets().values()
-            .get(SPREADSHEET_ID, range)
+            .get(spreadsheetId, range)
             .execute();
 
     List<List<Object>> values = response.getValues();
 
     if (values == null || values.isEmpty()) {
       System.out.println("No data found.");
-    }
-    else {
+    } else {
       for (List row : values) {
         data += row.get(0);
       }
@@ -336,7 +363,12 @@ public class SheetsAndJava {
     return data;
   }
 
+  /**
+   * Sets the ID of the spreadsheet to be used for future requets
+   *
+   * @param id The new spreadsheet ID to use.
+   */
   public static void updateSpreadsheetID(String id) {
-    SPREADSHEET_ID = id;
+    spreadsheetId = id;
   }
 }
