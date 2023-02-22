@@ -1,4 +1,4 @@
-package view;
+package text_based.view;
 
 import java.io.IOException;
 
@@ -9,7 +9,7 @@ public class TextBasedView {
   protected final Appendable destination;
 
   /**
-   * Constructor for view.TextBasedView class that sets the destination for output.
+   * Constructor for text_based.view.TextBasedView class that sets the destination for output.
    *
    * @param destination the output destination, which is usually System.out
    */

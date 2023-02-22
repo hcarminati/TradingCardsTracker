@@ -1,18 +1,20 @@
+package text_based;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 
-import controller.SheetsAndJava;
-import controller.TextBasedController;
-import view.TextBasedView;
+import text_based.controller.SheetsAndJava;
+import text_based.controller.TextBasedController;
+import text_based.view.TextBasedView;
 
 /**
- * The main class that runs the program on the command line. This class initializes the
- * necessary objects and starts the controller to manage user input/output through the console.
+ * The text_based.main class that runs the program on the command line. This class initializes the
+ * necessary objects and starts the text_based.controller to manage user input/output through the console.
  */
 public class main {
   /**
-   * The main method of the program. Initializes the required objects and starts the controller
+   * The text_based.main method of the program. Initializes the required objects and starts the text_based.controller
    * for managing user input/output through the console.
    *
    * @param args The command line arguments (not used in this program).
@@ -23,7 +25,8 @@ public class main {
     Readable readable = new InputStreamReader(System.in);
     Appendable appendable = System.out;
 
-    SheetsAndJava sheetsAndJava = new SheetsAndJava("Pickachu");
+    SheetsAndJava sheetsAndJava = new SheetsAndJava("1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk",
+            "Pickachu");
     TextBasedView view = new TextBasedView(appendable);
     TextBasedController controller = new TextBasedController(sheetsAndJava, view, readable);
     controller.start();

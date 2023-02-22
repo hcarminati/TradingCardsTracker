@@ -1,4 +1,4 @@
-package controller;
+package text_based.controller;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -30,41 +30,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import text_based.FetchData;
+import text_based.model.SpreadSheet;
+
 /**
- * The controller.SheetsAndJava class provides the functionality of accessing and modifying Google Sheets
+ * The text_based.controller.SheetsAndJava class provides the functionality of accessing and modifying Google Sheets
  * using Google Sheets API. It includes methods for getting Sheets service instance, authorizing
  * credentials, adding data to the spreadsheet and other helpful methods.
  */
 public class SheetsAndJava {
-  private static Sheets sheetsService;
-  private static String APPLICATION_NAME = "Google Sheets Example";
-  private static String spreadsheetId;
-
+  private static SpreadSheet spreadsheet;
+  private static String APPLICATION_NAME = "Trading Card Tracker";
   private static final FetchData fetchData = new FetchData();
 
   /**
-   * Constructor that initializes the Google Sheet ID and gets the instance of the Sheet.
+   * Constructs a new SheetsAndJava instance with the specified spreadsheet ID and list of eBay
+   * search terms.
    *
-   * @throws GeneralSecurityException if authorization is not successful
-   * @throws IOException              if failed to read a file or data
+   * @param spreadsheetId the ID of the Google Sheets spreadsheet to write data to
+   * @param searches the eBay search terms to use for data retrieval
+   * @throws GeneralSecurityException if there is a security-related error
+   * @throws IOException if an error occurs while communicating with the Google Sheets API or the eBay API
    */
-  public SheetsAndJava() throws GeneralSecurityException, IOException {
-    sheetsService = getSheetsService();
-    spreadsheetId = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
-  }
-
-  //TODO: may not need later, so can delete once main method functionality is complete
-
-  /**
-   * ???
-   *
-   * @param searches ???
-   * @throws GeneralSecurityException ???
-   * @throws IOException              ???
-   */
-  public SheetsAndJava(String searches) throws GeneralSecurityException, IOException {
-    spreadsheetId = "1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk";
-    sheetsService = getSheetsService();
+  public SheetsAndJava(String spreadsheetId, String searches) throws GeneralSecurityException, IOException {
+    this.spreadsheet = new SpreadSheet(spreadsheetId, this.getSheetsService());
     String[] searchesArray = searches.split("\n");
 
     for (String s : searchesArray) {
@@ -145,8 +134,8 @@ public class SheetsAndJava {
               Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
 
       // Is this used? - because it is grey
-      AppendValuesResponse appendResults = sheetsService.spreadsheets().values()
-              .append(spreadsheetId, range, appendName)
+      AppendValuesResponse appendResults = spreadsheet.getSheetsService().spreadsheets().values()
+              .append(spreadsheet.getSpreadsheetId(), range, appendName)
               .setValueInputOption("USER_ENTERED")
               .setInsertDataOption("INSERT_ROWS")
               .setIncludeValuesInResponse(true)
@@ -179,8 +168,8 @@ public class SheetsAndJava {
   public static void setQuantity(int quantity, int cellNum) throws IOException, GeneralSecurityException {
     String range = "Sheet1!B" + cellNum;
     String data = "";
-    ValueRange response = sheetsService.spreadsheets().values()
-            .get(spreadsheetId, range)
+    ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
+            .get(spreadsheet.getSpreadsheetId(), range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -199,8 +188,8 @@ public class SheetsAndJava {
                         Arrays.asList(quantity + currentQuantity - 1)));
 
 
-        UpdateValuesResponse updateResults = sheetsService.spreadsheets().values()
-                .update(spreadsheetId, range, requestBody)
+        UpdateValuesResponse updateResults = spreadsheet.getSheetsService().spreadsheets().values()
+                .update(spreadsheet.getSpreadsheetId(), range, requestBody)
                 .setValueInputOption("USER_ENTERED")
 //            .setInsertDataOption("INSERT_ROWS")
                 .setIncludeValuesInResponse(true)
@@ -222,8 +211,8 @@ public class SheetsAndJava {
     String range = "C3:C1000";
     int currentCell = 3;
 
-    ValueRange response = sheetsService.spreadsheets().values()
-            .get(spreadsheetId, range)
+    ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
+            .get(spreadsheet.getSpreadsheetId(), range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -272,8 +261,8 @@ public class SheetsAndJava {
     BatchUpdateSpreadsheetRequest body2 = new BatchUpdateSpreadsheetRequest()
             .setRequests(requests);
 
-    sheetsService.spreadsheets()
-            .batchUpdate(spreadsheetId, body2)
+    spreadsheet.getSheetsService().spreadsheets()
+            .batchUpdate(spreadsheet.getSpreadsheetId(), body2)
             .execute();
   }
 
@@ -287,8 +276,8 @@ public class SheetsAndJava {
   public static boolean duplicate(String data) throws IOException {
     String range = "C3:C5";
 
-    ValueRange response = sheetsService.spreadsheets().values()
-            .get(spreadsheetId, range)
+    ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
+            .get(spreadsheet.getSpreadsheetId(), range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -318,8 +307,8 @@ public class SheetsAndJava {
     String range = "C3:C5";
     int quantity = 1;
 
-    ValueRange response = sheetsService.spreadsheets().values()
-            .get(spreadsheetId, range)
+    ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
+            .get(spreadsheet.getSpreadsheetId(), range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -346,8 +335,8 @@ public class SheetsAndJava {
   public static String readData(String cell) throws IOException {
     String range = cell + ":" + cell;
     String data = "";
-    ValueRange response = sheetsService.spreadsheets().values()
-            .get(spreadsheetId, range)
+    ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
+            .get(spreadsheet.getSpreadsheetId(), range)
             .execute();
 
     List<List<Object>> values = response.getValues();
@@ -369,6 +358,6 @@ public class SheetsAndJava {
    * @param id The new spreadsheet ID to use.
    */
   public static void updateSpreadsheetID(String id) {
-    spreadsheetId = id;
+//    spreadsheetId = id;
   }
 }
