@@ -6,6 +6,7 @@ import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.sheets.v4.Sheets;
@@ -40,20 +41,36 @@ import text_based.model.SpreadSheet;
  */
 public class SheetsAndJava {
   private static SpreadSheet spreadsheet;
-  private static String APPLICATION_NAME = "Trading Card Tracker";
-  private static final FetchData fetchData = new FetchData();
+  private static final String APPLICATION_NAME = "Trading Card Tracker";
+
+  public SheetsAndJava(String spreadsheetId) throws GeneralSecurityException, IOException {
+    Sheets sheetsService = getSheetsService();
+
+    // Check if the provided spreadsheet ID is valid
+    try {
+      sheetsService.spreadsheets().get(spreadsheetId).execute();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 404) {
+        throw new IllegalArgumentException("Invalid spreadsheet ID");
+      } else {
+        throw e;
+      }
+    }
+
+    spreadsheet = new SpreadSheet(spreadsheetId, sheetsService);
+  }
 
   /**
    * Constructs a new SheetsAndJava instance with the specified spreadsheet ID and list of eBay
    * search terms.
    *
    * @param spreadsheetId the ID of the Google Sheets spreadsheet to write data to
-   * @param searches the eBay search terms to use for data retrieval
+   * @param searches      the eBay search terms to use for data retrieval
    * @throws GeneralSecurityException if there is a security-related error
-   * @throws IOException if an error occurs while communicating with the Google Sheets API or the eBay API
+   * @throws IOException              if an error occurs while communicating with the Google Sheets API or the eBay API
    */
   public SheetsAndJava(String spreadsheetId, String searches) throws GeneralSecurityException, IOException {
-    this.spreadsheet = new SpreadSheet(spreadsheetId, this.getSheetsService());
+    spreadsheet = new SpreadSheet(spreadsheetId, getSheetsService());
     String[] searchesArray = searches.split("\n");
 
     for (String s : searchesArray) {
@@ -131,7 +148,7 @@ public class SheetsAndJava {
     // If not duplicate, add it.
     else {
       ValueRange appendName = new ValueRange().setValues(
-              Arrays.asList(Arrays.asList(quantity, data, fetchData.search(data), fetchData.getURL(data))));
+              Arrays.asList(Arrays.asList(quantity, data, FetchData.search(data), FetchData.getURL(data))));
 
       // Is this used? - because it is grey
       AppendValuesResponse appendResults = spreadsheet.getSheetsService().spreadsheets().values()
@@ -350,14 +367,5 @@ public class SheetsAndJava {
     }
 
     return data;
-  }
-
-  /**
-   * Sets the ID of the spreadsheet to be used for future requets
-   *
-   * @param id The new spreadsheet ID to use.
-   */
-  public static void updateSpreadsheetID(String id) {
-//    spreadsheetId = id;
   }
 }

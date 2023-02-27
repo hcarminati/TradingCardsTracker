@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 
-import text_based.controller.SheetsAndJava;
 import text_based.controller.TextBasedController;
 import text_based.view.TextBasedView;
 
@@ -25,10 +24,9 @@ public class main {
     Readable readable = new InputStreamReader(System.in);
     Appendable appendable = System.out;
 
-    SheetsAndJava sheetsAndJava = new SheetsAndJava("1oQWexgC0J-Mni3Nz-B3PNRphiBeSKF9dhLUuGT5PaAk",
-            "Pickachu");
     TextBasedView view = new TextBasedView(appendable);
-    TextBasedController controller = new TextBasedController(sheetsAndJava, view, readable);
+    TextBasedController controller = new TextBasedController(view, readable);
+
     controller.start();
   }
 }
