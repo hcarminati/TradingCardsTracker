@@ -12,10 +12,14 @@ import java.security.GeneralSecurityException;
  */
 public class SpreadSheet {
 
-  /** The Sheets service instance used to access the spreadsheet. */
+  /**
+   * The Sheets service instance used to access the spreadsheet.
+   */
   private static Sheets sheetsService;
 
-  /** The ID of the spreadsheet being accessed. */
+  /**
+   * The ID of the spreadsheet being accessed.
+   */
   private static String spreadsheetId;
 
   /**
@@ -23,13 +27,10 @@ public class SpreadSheet {
    *
    * @param spreadsheetId the ID of the spreadsheet to access
    * @param sheetsService the Sheets service instance to use for accessing the spreadsheet
-   * @throws GeneralSecurityException if there is a security-related error
-   * @throws IOException if an error occurs while communicating with the Sheets API
    */
-  public SpreadSheet(String spreadsheetId, Sheets sheetsService)
-          throws GeneralSecurityException, IOException {
-    this.spreadsheetId = spreadsheetId;
-    this.sheetsService = sheetsService;
+  public SpreadSheet(String spreadsheetId, Sheets sheetsService) {
+    SpreadSheet.spreadsheetId = spreadsheetId;
+    SpreadSheet.sheetsService = sheetsService;
   }
 
   /**
@@ -38,7 +39,7 @@ public class SpreadSheet {
    * @return the Sheets service instance
    */
   public Sheets getSheetsService() {
-    return this.sheetsService;
+    return sheetsService;
   }
 
   /**
@@ -47,6 +48,6 @@ public class SpreadSheet {
    * @return the spreadsheet ID
    */
   public String getSpreadsheetId() {
-    return this.spreadsheetId;
+    return spreadsheetId;
   }
 }
