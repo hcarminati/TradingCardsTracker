@@ -40,8 +40,8 @@ import text_based.model.SpreadSheet;
  * credentials, adding data to the spreadsheet and other helpful methods.
  */
 public class SheetsAndJava {
-  private static SpreadSheet spreadsheet;
   private static final String APPLICATION_NAME = "Trading Card Tracker";
+  private static SpreadSheet spreadsheet;
 
   public SheetsAndJava(String spreadsheetId) throws GeneralSecurityException, IOException {
     Sheets sheetsService = getSheetsService();
@@ -129,9 +129,8 @@ public class SheetsAndJava {
    *
    * @param data the name to look for or add
    * @throws IOException              if failed to read a file or data
-   * @throws GeneralSecurityException if authorization is not successful
    */
-  public static void writeData(String data) throws IOException, GeneralSecurityException {
+  public static void writeData(String data) throws IOException {
     String range = "B3";
 
     int quantity = 1;
@@ -180,9 +179,8 @@ public class SheetsAndJava {
    * @param quantity the new quantity to be set
    * @param cellNum  the cell number to set the quantity for
    * @throws IOException              if an error occurs while accessing the Google Sheets API
-   * @throws GeneralSecurityException if not authorized
    */
-  public static void setQuantity(int quantity, int cellNum) throws IOException, GeneralSecurityException {
+  public static void setQuantity(int quantity, int cellNum) throws IOException {
     String range = "Sheet1!B" + cellNum;
     String data = "";
     ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
@@ -193,7 +191,7 @@ public class SheetsAndJava {
     String currentQuantityString = values.get(0).get(0).toString();
     int currentQuantity = Integer.valueOf(currentQuantityString);
 
-    if (values == null || values.isEmpty()) {
+    if (values.isEmpty()) {
       System.out.println("No data found.");
     } else {
       for (List row : values) {
@@ -234,11 +232,11 @@ public class SheetsAndJava {
 
     List<List<Object>> values = response.getValues();
 
-    for (int i = 0; i < values.size(); i++) {
-      if (!values.get(i).get(0).equals(cell)) {
+    for (List<Object> listObject : values) {
+      if (!listObject.get(0).equals(cell)) {
         currentCell++;
       }
-      if (values.get(i).get(0).equals(cell)) {
+      if (listObject.get(0).equals(cell)) {
         return currentCell;
       }
     }
@@ -300,8 +298,8 @@ public class SheetsAndJava {
     List<List<Object>> values = response.getValues();
 
     if (values != null) {
-      for (int i = 0; i < values.size(); i++) {
-        if (values.get(i).get(0).equals(data)) {
+      for (List<Object> listObject : values) {
+        if (listObject.get(0).equals(data)) {
           return true;
         }
       }
@@ -330,10 +328,9 @@ public class SheetsAndJava {
 
     List<List<Object>> values = response.getValues();
 
-    for (int i = 0; i < values.size(); i++) {
-
+    for (List<Object> listObject : values) {
       // if cell is empty an error is thrown here
-      if (values.get(i).get(0).equals(data)) {
+      if (listObject.get(0).equals(data)) {
         quantity++;
       }
     }
