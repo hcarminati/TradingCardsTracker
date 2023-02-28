@@ -2,9 +2,6 @@ package text_based.model;
 
 import com.google.api.services.sheets.v4.Sheets;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-
 /**
  * The SpreadSheet class provides access to a Google Sheets spreadsheet using the Google Sheets API.
  * It allows you to get the Sheets service instance and the spreadsheet ID for the spreadsheet you

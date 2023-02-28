@@ -15,11 +15,10 @@ import text_based.view.TextBasedView;
  * text_based.controller.SheetsAndJava text_based.model accordingly.
  */
 public class TextBasedController {
-  private SheetsAndJava sheetsAndJava;
   private final TextBasedView view;
   private final Readable readable;
   Properties props = new Properties();
-
+  private SheetsAndJava sheetsAndJava;
   // Properties
   private String welcomeMessage;
   private String spreadsheetIdPrompt;
@@ -95,15 +94,14 @@ public class TextBasedController {
    * the user enters "exit".
    *
    * @throws IOException              If there is an issue with user input or the model.
-   * @throws GeneralSecurityException If there is an issue with security.
    */
-  public void start() throws IOException, GeneralSecurityException {
+  public void start() throws IOException {
     Scanner scan = new Scanner(this.readable);
 
     this.view.renderMessage(welcomeMessage);
 
     SheetsAndJava sheetsAndJava = null;
-    while (sheetsAndJava == null) {
+    while (sheetsAndJava == null && scan.hasNext()) {
       this.view.renderMessage(spreadsheetIdPrompt);
       String url = scan.next();
       try {
@@ -120,7 +118,7 @@ public class TextBasedController {
       }
     }
 
-    while (true) {
+    while (scan.hasNextLine()) {
       String input = scan.nextLine().trim();
       if (input.equals("exit")) {
         this.view.renderMessage(exitMessage);
