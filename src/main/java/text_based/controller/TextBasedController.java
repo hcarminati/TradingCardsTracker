@@ -10,6 +10,8 @@ import java.util.Scanner;
 
 import text_based.view.TextBasedView;
 
+import static text_based.utilities.GoogleSheetsURLParser.extractSheetId;
+
 /**
  * The text_based.controller.TextBasedController class receives user input from the text_based.view.TextBasedView and updates the
  * text_based.controller.SheetsAndJava text_based.model accordingly.
@@ -103,7 +105,7 @@ public class TextBasedController {
     SheetsAndJava sheetsAndJava = null;
     while (sheetsAndJava == null && scan.hasNext()) {
       this.view.renderMessage(spreadsheetIdPrompt);
-      String url = scan.next();
+      String url = extractSheetId(scan.next());
       try {
         sheetsAndJava = new SheetsAndJava(url);
         this.view.renderMessage(successfullyConnectedMessage + inputDataMessage);
