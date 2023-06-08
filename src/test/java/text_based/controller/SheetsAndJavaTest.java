@@ -1,4 +1,4 @@
-package text_based.controller.tests;
+package text_based.controller;
 
 import org.junit.jupiter.api.Test;
 
