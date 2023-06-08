@@ -1,4 +1,4 @@
-package text_based.model.tests;
+package text_based.model;
 
 import com.google.api.services.sheets.v4.Sheets;
 

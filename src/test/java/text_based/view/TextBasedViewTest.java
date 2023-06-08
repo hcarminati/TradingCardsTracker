@@ -1,11 +1,9 @@
-package text_based.view.tests;
+package text_based.view;
 
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
-
-import text_based.view.TextBasedView;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
