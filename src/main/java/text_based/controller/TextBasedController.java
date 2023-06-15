@@ -121,7 +121,11 @@ public class TextBasedController {
     }
 
     while (scan.hasNextLine()) {
+while (scan.hasNextLine()) {
       String input = scan.nextLine().trim();
+      if (input.equals("\n")) {
+        continue;
+      }
       if (input.equals("exit")) {
         this.view.renderMessage(exitMessage);
         break;
@@ -134,6 +138,8 @@ public class TextBasedController {
           // Display error message to the user
           this.view.renderMessage(dataAddErrorMessage + permissionToAccessMessage);
         }
+      }
+    }
       }
     }
   }
