@@ -80,6 +80,7 @@ public class TextBasedController {
     // Retrieve the messages using the keys
     welcomeMessage = props.getProperty("welcome.message");
     spreadsheetUrlPrompt = props.getProperty("spreadsheet.url.prompt");
+    invalidSpreadsheetUrlMessage = props.getProperty("invalid.spreadsheet.url.message");
     successfullyConnectedMessage = props.getProperty("successfully.connected.message");
     exitMessage = props.getProperty("exit.message");
     dataAddedMessage = props.getProperty("data.added.message");
