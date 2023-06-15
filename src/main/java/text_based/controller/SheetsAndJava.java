@@ -130,11 +130,12 @@ public class SheetsAndJava {
    * @param data the name to look for or add
    * @throws IOException              if failed to read a file or data
    */
-  public static void writeData(String data) throws IOException {
+public static void writeData(String data, boolean isUserInput) throws IOException {
     String range = "B3";
 
     int quantity = 1;
     int duplicateCellNum = -1;
+    long timestamp = System.currentTimeMillis();
 
     // perhaps make it one method that checks if it is duplicate and calculates the quantity
     // this may reduce the running time
@@ -146,16 +147,31 @@ public class SheetsAndJava {
 
     // If not duplicate, add it.
     else {
-      ValueRange appendName = new ValueRange().setValues(
-              Arrays.asList(Arrays.asList(quantity, data, FetchData.search(data), FetchData.getURL(data))));
+      // Check if the timestamp is more than 24 hours ago or if the card is being inputted by the user
+      if (timestamp - getTimestamp(data) > 24 * 60 * 60 * 1000 || isUserInput) {
+        ValueRange appendName = new ValueRange().setValues(
+                Arrays.asList(Arrays.asList(quantity, data, FetchData.search(data), FetchData.getURL(data), timestamp)));
 
-      // Is this used? - because it is grey
-      AppendValuesResponse appendResults = spreadsheet.getSheetsService().spreadsheets().values()
-              .append(spreadsheet.getSpreadsheetId(), range, appendName)
-              .setValueInputOption("USER_ENTERED")
-              .setInsertDataOption("INSERT_ROWS")
-              .setIncludeValuesInResponse(true)
-              .execute();
+        // Is this used? - because it is grey
+        AppendValuesResponse appendResults = spreadsheet.getSheetsService().spreadsheets().values()
+                .append(spreadsheet.getSpreadsheetId(), range, appendName)
+                .setValueInputOption("USER_ENTERED")
+                .setInsertDataOption("INSERT_ROWS")
+                .setIncludeValuesInResponse(true)
+                .execute();
+      } else {
+        // Use the existing price and URL
+        ValueRange appendName = new ValueRange().setValues(
+                Arrays.asList(Arrays.asList(quantity, data, getPrice(data), getURL(data), timestamp)));
+
+        // Is this used? - because it is grey
+        AppendValuesResponse appendResults = spreadsheet.getSheetsService().spreadsheets().values()
+                .append(spreadsheet.getSpreadsheetId(), range, appendName)
+                .setValueInputOption("USER_ENTERED")
+                .setInsertDataOption("INSERT_ROWS")
+                .setIncludeValuesInResponse(true)
+                .execute();
+      }
 
       CellData setUserEnteredValue = new CellData()
               .setUserEnteredValue(new ExtendedValue().setStringValue("example text"));
@@ -168,6 +184,10 @@ public class SheetsAndJava {
       setUserEnteredValue.setUserEnteredFormat(cellFormat);
 
       notBold();
+    }
+
+  }
+  }
     }
 
   }
