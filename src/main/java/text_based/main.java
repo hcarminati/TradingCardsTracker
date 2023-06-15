@@ -21,10 +21,13 @@ public class main {
    * @throws GeneralSecurityException if a security error occurs.
    */
   public static void main(String[] args) throws IOException, GeneralSecurityException {
+final Readable readable = new InputStreamReader(System.in);
     Readable readable = new InputStreamReader(System.in);
+final Appendable appendable = System.out;
     Appendable appendable = System.out;
-
+final TextBasedView view = new TextBasedView(appendable);
     TextBasedView view = new TextBasedView(appendable);
+final TextBasedController controller = new TextBasedController(view, readable);
     TextBasedController controller = new TextBasedController(view, readable);
 
     controller.start();
