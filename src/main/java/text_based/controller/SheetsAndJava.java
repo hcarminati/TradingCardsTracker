@@ -133,13 +133,13 @@ public class SheetsAndJava {
   public static void writeData(String data) throws IOException {
     String range = "B3";
 
-    int quantity = 1;
     int duplicateCellNum = -1;
 
     // perhaps make it one method that checks if it is duplicate and calculates the quantity
     // this may reduce the running time
-    if (duplicate(data)) {
-      quantity = quantity(data);
+    int quantity = quantity(data);
+
+    if (quantity > 1) {
       duplicateCellNum = getDuplicateCellNum(data);
       setQuantity(quantity, duplicateCellNum);
     }
@@ -233,10 +233,16 @@ public class SheetsAndJava {
     List<List<Object>> values = response.getValues();
 
     for (List<Object> listObject : values) {
-      if (!listObject.get(0).equals(cell)) {
+      if (!listObject.isEmpty() &&
+              !listObject.get(0)
+                      .toString()
+                      .equalsIgnoreCase(cell)) {
         currentCell++;
       }
-      if (listObject.get(0).equals(cell)) {
+      if (!listObject.isEmpty() &&
+              listObject.get(0)
+                      .toString()
+                      .equalsIgnoreCase(cell)) {
         return currentCell;
       }
     }
@@ -299,7 +305,8 @@ public class SheetsAndJava {
 
     if (values != null) {
       for (List<Object> listObject : values) {
-        if (listObject.get(0).equals(data)) {
+        if (!listObject.isEmpty() &&
+                listObject.get(0).equals(data)) {
           return true;
         }
       }
@@ -319,7 +326,7 @@ public class SheetsAndJava {
    * @throws IOException if an error occurs while accessing the spreadsheet
    */
   public static int quantity(String data) throws IOException {
-    String range = "C3:C5";
+    String range = "C3:C100";
     int quantity = 1;
 
     ValueRange response = spreadsheet.getSheetsService().spreadsheets().values()
@@ -330,7 +337,10 @@ public class SheetsAndJava {
 
     for (List<Object> listObject : values) {
       // if cell is empty an error is thrown here
-      if (listObject.get(0).equals(data)) {
+      if (!listObject.isEmpty()
+              && listObject.get(0)
+              .toString()
+              .equalsIgnoreCase(data)) {
         quantity++;
       }
     }
