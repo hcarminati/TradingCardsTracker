@@ -23,8 +23,8 @@ public class TextBasedController {
   private SheetsAndJava sheetsAndJava;
   // Properties
   private String welcomeMessage;
-  private String spreadsheetIdPrompt;
-  private String invalidSpreadsheetIdMessage;
+  private String spreadsheetUrlPrompt;
+  private String invalidSpreadsheetUrlMessage;
   private String successfullyConnectedMessage;
   private String exitMessage;
   private String dataAddedMessage;
@@ -79,8 +79,8 @@ public class TextBasedController {
     props.load(reader);
     // Retrieve the messages using the keys
     welcomeMessage = props.getProperty("welcome.message");
-    spreadsheetIdPrompt = props.getProperty("spreadsheet.id.prompt");
-    invalidSpreadsheetIdMessage = props.getProperty("invalid.spreadsheet.id.message");
+    spreadsheetUrlPrompt = props.getProperty("spreadsheet.url.prompt");
+    invalidSpreadsheetUrlMessage = props.getProperty("invalid.spreadsheet.url.message");
     successfullyConnectedMessage = props.getProperty("successfully.connected.message");
     exitMessage = props.getProperty("exit.message");
     dataAddedMessage = props.getProperty("data.added.message");
@@ -101,11 +101,11 @@ public class TextBasedController {
     Scanner scan = new Scanner(this.readable);
 
     this.view.renderMessage(welcomeMessage);
+    this.view.renderMessage(spreadsheetUrlPrompt);
 
     SheetsAndJava sheetsAndJava = null;
-    while (sheetsAndJava == null && scan.hasNext()) {
-      this.view.renderMessage(spreadsheetIdPrompt);
-      String url = extractSheetId(scan.next());
+    while (sheetsAndJava == null && scan.hasNextLine()) {
+      String url = extractSheetId(scan.nextLine());
       try {
         sheetsAndJava = new SheetsAndJava(url);
         this.view.renderMessage(successfullyConnectedMessage + inputDataMessage);
@@ -113,10 +113,12 @@ public class TextBasedController {
         if (e.getStatusCode() == 403) {
           this.view.renderMessage(apiKeyMissingMessage + permissionToAccessMessage);
         } else {
-          this.view.renderMessage(invalidSpreadsheetIdMessage);
+          this.view.renderMessage(invalidSpreadsheetUrlMessage);
         }
+      } catch (GeneralSecurityException e) {
+        this.view.renderMessage("Security operation error:" + e.getMessage());
       } catch (Exception e) {
-        this.view.renderMessage(invalidSpreadsheetIdMessage);
+        this.view.renderMessage(invalidSpreadsheetUrlMessage);
       }
     }
 

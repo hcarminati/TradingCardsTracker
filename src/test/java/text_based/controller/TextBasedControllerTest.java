@@ -31,7 +31,8 @@ public class TextBasedControllerTest {
 
     TextBasedController controller = new TextBasedController(mockModel, mockView, readable);
     controller.start();
-    assertEquals("Welcome to Trading Card Tracker. \n", appendable.toString());
+    assertEquals("Welcome to Trading Card Tracker. \n" +
+            "Input your spreadsheet ID... \n", appendable.toString());
   }
 
   @Test
