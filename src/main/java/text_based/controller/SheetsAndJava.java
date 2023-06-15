@@ -130,7 +130,7 @@ public class SheetsAndJava {
    * @param data the name to look for or add
    * @throws IOException              if failed to read a file or data
    */
-public static void writeData(String data) throws IOException {
+public static void writeData(String data, boolean isUserInput) throws IOException {
     String range = "B3";
 
     int quantity = 1;
@@ -147,8 +147,8 @@ public static void writeData(String data) throws IOException {
 
     // If not duplicate, add it.
     else {
-      // Check if the timestamp is more than 24 hours ago
-      if (timestamp - getTimestamp(data) > 24 * 60 * 60 * 1000) {
+      // Check if the timestamp is more than 24 hours ago or if the card is being inputted by the user
+      if (timestamp - getTimestamp(data) > 24 * 60 * 60 * 1000 || isUserInput) {
         ValueRange appendName = new ValueRange().setValues(
                 Arrays.asList(Arrays.asList(quantity, data, FetchData.search(data), FetchData.getURL(data), timestamp)));
 
@@ -186,6 +186,7 @@ public static void writeData(String data) throws IOException {
       notBold();
     }
 
+  }
   }
     }
 
