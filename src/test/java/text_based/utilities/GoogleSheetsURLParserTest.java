@@ -8,8 +8,10 @@ import static org.testng.Assert.assertNull;
 public class GoogleSheetsURLParserTest {
   @Test
   public void testExtractSheetIdSuccessful() {
+final String httpsUrl = "https://docs.google.com/spreadsheets" +
     String httpsUrl = "https://docs.google.com/spreadsheets" +
             "/d/1vR5QMaAW5LOUo2LwV50loukHbXcXh5YtCHSschmcHGU/edit#gid=0";
+final String wwwUrl = "www.docs.google.com/spreadsheets" +
     String wwwUrl = "www.docs.google.com/spreadsheets" +
             "/d/1vR5QMaAW5LOUo2LwV50loukHbXcXh5YtCHSschmcHGU/edit#gid=0";
 
@@ -21,8 +23,10 @@ public class GoogleSheetsURLParserTest {
 
   @Test
   public void testExtractSheetIdUnSuccessful() {
+final String noDUrl = "https://docs.google.com/spreadsheets" +
     String noDUrl = "https://docs.google.com/spreadsheets" +
             "1vR5QMaAW5LOUo2LwV50loukHbXcXh5YtCHSschmcHGU/edit#gid=0";
+final String emptyUrl = "";
     String emptyUrl = "";
 
     assertNull(GoogleSheetsURLParser.extractSheetId(noDUrl));
